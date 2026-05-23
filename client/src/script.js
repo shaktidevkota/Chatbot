@@ -3,25 +3,25 @@ const userInput = document.getElementById('user-input');
 const chatBox = document.getElementById('chat-box');
 const historyList = document.getElementById('history-list');
 
-// Store conversation history
 let history = [];
 
-// Send message
-sendBtn.addEventListener('click', async () => {
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+async function sendMessage() {
   const message = userInput.value.trim();
   if (!message) return;
 
   addMessage(message, 'user');
   userInput.value = '';
-
-  // Add user message to history
   history.push({ role: 'user', content: message });
 
-  try {
-    // Show loading dots while waiting
-    showThinkingDots();
+  showThinkingDots();
 
-    const response = await fetch('https://chatbot-sotf.onrender.com/api', {
+  try {
+    const response = await fetch('http://localhost:5000/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: message, history })
@@ -30,22 +30,17 @@ sendBtn.addEventListener('click', async () => {
     const data = await response.json();
     const reply = data.reply || 'No response from AI.';
 
-    // Remove loading dots
     removeThinkingDots();
-
-    // Add AI reply to history
     history.push({ role: 'assistant', content: reply });
-
     addTypingEffect(reply, 'bot');
     updateHistory();
   } catch (error) {
     console.error(error);
     removeThinkingDots();
-    addMessage('Sorry, something went wrong connecting to the server.', 'bot');
+    addMessage('Sorry, something went wrong. Please try again.', 'bot');
   }
-});
+}
 
-// Add message to chat box
 function addMessage(text, sender) {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
@@ -54,7 +49,6 @@ function addMessage(text, sender) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Typing animation for AI replies
 function addTypingEffect(text, sender) {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
@@ -66,10 +60,9 @@ function addTypingEffect(text, sender) {
     i++;
     if (i > text.length) clearInterval(interval);
     chatBox.scrollTop = chatBox.scrollHeight;
-  }, 30);
+  }, 20);
 }
 
-// Show “thinking dots” while AI is generating
 function showThinkingDots() {
   const dotsDiv = document.createElement('div');
   dotsDiv.classList.add('message', 'bot');
@@ -84,7 +77,6 @@ function removeThinkingDots() {
   if (dotsDiv) dotsDiv.remove();
 }
 
-// Update sidebar history
 function updateHistory() {
   historyList.innerHTML = '';
   history.forEach((item, index) => {
@@ -93,7 +85,7 @@ function updateHistory() {
       li.textContent = item.content.slice(0, 40);
       li.addEventListener('click', () => {
         chatBox.innerHTML = '';
-        history.slice(0, index + 1).forEach(msg =>
+        history.slice(0, index + 2).forEach(msg =>
           addMessage(msg.content, msg.role === 'user' ? 'user' : 'bot')
         );
       });
