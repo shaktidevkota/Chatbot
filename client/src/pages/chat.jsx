@@ -6,7 +6,7 @@ export default function Chat() {
   const [response, setResponse] = useState("")
 
   const sendMessage = async () => {
-    const res = await axios.post("http://localhost:5000/api/chat", {
+    const res = await axios.post("https://chatbot-sotf.onrender.com/api/chat", {
       message,
     })
 
