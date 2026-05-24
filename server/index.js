@@ -3,21 +3,33 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 dotenv.config();
-console.log('KEY:', process.env.OPENROUTER_API_KEY);
 
 const app = express();
 
-app.use(cors({ origin: '*' }));
+app.use(cors({
+  origin: ['https://chatbot-sand-sigma-94.vercel.app', 'http://localhost:5173']
+}));
+
 app.use(express.json());
 
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+if (!OPENROUTER_API_KEY) {
+  console.error('Missing OPENROUTER_API_KEY in environment. Create server/.env with OPENROUTER_API_KEY=your_key');
+}
+
 app.post('/api', async (req, res) => {
-  const { prompt, history = [] } = req.body;
+  const prompt = req.body.prompt;
+  const history = req.body.history || [];
+
+  if (!OPENROUTER_API_KEY) {
+    return res.status(500).json({ reply: 'Server missing OPENROUTER_API_KEY. Please configure the .env file.' });
+  }
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -33,6 +45,12 @@ app.post('/api', async (req, res) => {
       })
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter error:', response.status, errorText);
+      return res.status(response.status).json({ reply: 'AI service returned an error.' });
+    }
+
     const data = await response.json();
     console.log('OpenRouter response:', JSON.stringify(data));
     const reply = data.choices?.[0]?.message?.content || 'No response from AI.';
@@ -44,4 +62,4 @@ app.post('/api', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

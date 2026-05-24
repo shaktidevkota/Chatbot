@@ -10,6 +10,14 @@ userInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') sendMessage();
 });
 
+function formatReply(text) {
+  return text
+    .replace(/(^|\s)[-–—]\s+/g, '$1\n- ')
+    .replace(/(\d+)\.\s*/g, '\n$1. ')
+    .replace(/\n{2,}/g, '\n\n')
+    .trim();
+}
+
 async function sendMessage() {
   const message = userInput.value.trim();
   if (!message) return;
@@ -28,7 +36,8 @@ async function sendMessage() {
     });
 
     const data = await response.json();
-    const reply = data.reply || 'No response from AI.';
+    const rawReply = data.reply || 'No response from AI.';
+    const reply = formatReply(rawReply);
 
     removeThinkingDots();
     history.push({ role: 'assistant', content: reply });

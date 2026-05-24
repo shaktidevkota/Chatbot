@@ -77,12 +77,14 @@ body {
   flex-direction: column;
 }
 
-.message {
+..message {
   margin-bottom: 15px;
   padding: 10px 15px;
   border-radius: 8px;
   max-width: 80%;
-  line-height: 1.5;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .message.user {
