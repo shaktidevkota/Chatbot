@@ -6,8 +6,19 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  'https://chatbot-sand-sigma-94.vercel.app',
+  'https://chatbot-sotf.onrender.com',
+  'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: ['https://chatbot-sand-sigma-94.vercel.app', 'http://localhost:5173']
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  }
 }));
 
 app.use(express.json());
